@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promemoria Cat & Rabbit Sitter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .date-info {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2980b9;
+        }
+
+        .task-desc {
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .status {
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status.pending {
+            color: #e67e22;
+        }
+
+        .status.done {
+            color: #27ae60;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-done {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .btn-done:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-perm {
+            background-color: #3498db;
+            color: white;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>🐾 Sitter Giornaliero</h1>
+        <p class="subtitle">Cat & Rabbit Sitter - Ore 19:00</p>
+
+        <button class="btn-perm" id="permBtn" onclick="requestPermission()">Abilita Notifiche Telefono</button>
+
+        <div id="tasksContainer"></div>
+    </div>
+
+    <script>
+        const tasksData = [
+            { id: 't1', dateStr: '2026-09-30', label: '30 Settembre 2026 - Ore 19:00' },
+            { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre 2026 - Ore 19:00' },
+            { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre 2026 - Ore 19:00' },
+            { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre 2026 - Ore 19:00' }
+        ];
+
+        // Registrazione del Service Worker per la memoria persistente e background
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('Service Worker registrato con successo');
+            }).catch(err => {
+                console.log('Registrazione Service Worker fallita: ', err);
+            });
+        }
+
+        // Funzione per leggere lo stato da localStorage (persistente sul dispositivo)
+        function getSavedState() {
+            const saved = localStorage.getItem('sitter_tasks_v2');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            let initialState = {};
+            tasksData.forEach(t => {
+                initialState[t.id] = { done: false, lastNotified: null };
+            });
+            return initialState;
+        }
+
+        let state = getSavedState();
+
+        function saveState() {
+            localStorage.setItem('sitter_tasks_v2', JSON.stringify(state));
+        }
+
+        function render() {
+            const container = document.getElementById('tasksContainer');
+            container.innerHTML = '';
+
+            tasksData.forEach(task => {
+                const taskState = state[task.id];
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                card.innerHTML = `
+                <div class="date-info">${task.label}</div>
+                <div class="task-desc">🐱🐰 Cat & Rabbit Sitter</div>
+                <div class="status ${taskState.done ? 'done' : 'pending'}">
+                    Stato: ${taskState.done ? 'Completato ✅' : 'In attesa ⏳'}
+                </div>
+                <button class="btn-done" id="btn-${task.id}" ${taskState.done ? 'disabled' : ''} onclick="markAsDone('${task.id}')">
+                    ${taskState.done ? 'FATTO' : 'Segna come FATTO'}
+                </button>
+            `;
+                container.appendChild(card);
+            });
+
+            if (Notification.permission === "granted") {
+                document.getElementById('permBtn').style.display = 'none';
+            }
+        }
+
+        function requestPermission() {
+            if (!("Notification" in window)) {
+                alert("Il tuo browser non supporta le notifiche.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    alert("Notifiche abilitate!");
+                    render();
+                } else {
+                    alert("Permesso notifiche negato.");
+                }
+            });
+        }
+
+        function markAsDone(id) {
+            state[id].done = true;
+            saveState();
+            render();
+
+            // Comunica al Service Worker lo stato aggiornato
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'UPDATE_STATE',
+                    state: state
+                });
+            }
+        }
+
+        render();
+    </script>
+
+</body>
+
+</html>
