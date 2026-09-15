@@ -240,11 +240,11 @@
     function updateTestTime() {
         const timeInput = document.getElementById('testTime').value;
         localStorage.setItem('sitter_test_time', timeInput);
-        render(); // Ricarica le card per aggiornare i link al calendario con il nuovo orario
+        render();
     }
 
     function getSavedState() {
-        const saved = localStorage.getItem('sitter_tasks_dark_v9');
+        const saved = localStorage.getItem('sitter_tasks_dark_v10');
         if (saved) return JSON.parse(saved);
         let initialState = {};
         tasksData.forEach(t => {
@@ -256,7 +256,7 @@
     let state = getSavedState();
 
     function saveState() {
-        localStorage.setItem('sitter_tasks_dark_v9', JSON.stringify(state));
+        localStorage.setItem('sitter_tasks_dark_v10', JSON.stringify(state));
     }
 
     function render() {
@@ -271,17 +271,30 @@
             const card = document.createElement('div');
             card.className = 'card';
 
-            // Genera il link sicuro per Google Calendar con data, ora scelta e indirizzo
             const [year, month, day] = task.dateStr.split('-');
             const [hour, minute] = currentTime.split(':');
             
-            // Formato data ISO per Google Calendar (YYYYMMDDTHHmm00)
             const startDate = `${year}${month}${day}T${hour}${minute}00`;
-            // Fine evento un'ora dopo
             let endHour = String(parseInt(hour) + 1).padStart(2, '0');
             const endDate = `${year}${month}${day}T${endHour}${minute}00`;
 
-            const calUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=🐱🐰+Visita+Gatto+e+Coniglio&dates=${startDate}/${endDate}&details=Turno+di+sittering+in+Via+G.+Ellero,+2,+Pavia+di+Udine.&location=Via+G.+Ellero,+2,+33050+Pavia+di+Udine+UD`;
+            // Generazione file .ics incorporato per Apple Calendar / iOS nativo
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Cat Rabbit Sitter//IT
+BEGIN:VEVENT
+UID:${task.id}-${year}${month}${day}@cat-rabbit-sitter
+DTSTAMP:${year}${month}${day}T000000Z
+DTSTART:${startDate}
+DTEND:${endDate}
+SUMMARY:🐱🐰 Visita Gatto e Coniglio
+DESCRIPTION:Turno di sittering in Via G. Ellero, 2, Pavia di Udine.
+LOCATION:Via G. Ellero, 2, 33050 Pavia di Udine UD
+END:VEVENT
+END:VCALENDAR`;
+
+            const encodedIcs = encodeURIComponent(icsContent);
+            const appleCalendarUrl = `data:text/calendar;charset=utf8,${encodedIcs}`;
 
             card.innerHTML = `
                 <div class="date-info">📅 ${task.label} - ${currentTime}</div>
@@ -291,8 +304,8 @@
                         ${taskState.done ? 'Completato ✅' : 'In attesa ⏳'}
                     </span>
                 </div>
-                <a href="${calUrl}" target="_blank" style="text-decoration: none;">
-                    <button class="btn-cal" style="width: 100%;">📅 Aggiungi Promemoria al Calendario</button>
+                <a href="${appleCalendarUrl}" download="visita_${task.dateStr}.ics" style="text-decoration: none;">
+                    <button class="btn-cal" style="width: 100%;">📅 Aggiungi ad Apple Calendar</button>
                 </a>
                 <button class="btn-done" id="btn-${task.id}" ${taskState.done ? 'disabled' : ''} onclick="confirmAndDone('${task.id}')">
                     ${taskState.done ? 'FATTO' : 'Segna come FATTO'}
