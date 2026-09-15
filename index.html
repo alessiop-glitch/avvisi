@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cat & Rabbit Sitter</title>
+    <!-- Favicon integrata con emoji senza bisogno di file esterni -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
     <style>
         :root {
             --bg-color: #121214;
@@ -114,12 +115,10 @@
             font-weight: 600;
             width: fit-content;
         }
-
         .status-badge.pending {
             background: rgba(230, 126, 34, 0.15);
             color: #f39c12;
         }
-
         .status-badge.done {
             background: rgba(4, 211, 97, 0.15);
             color: var(--success);
@@ -139,11 +138,9 @@
             background-color: var(--success);
             color: #121214;
         }
-
         .btn-done:active {
             background-color: var(--success-dark);
         }
-
         .btn-done:disabled {
             background-color: #2a2a32;
             color: #555561;
@@ -156,7 +153,6 @@
             width: 100%;
             margin-bottom: 10px;
         }
-
         .btn-perm:active {
             background-color: var(--primary-hover);
         }
@@ -167,7 +163,6 @@
             width: 100%;
             margin-bottom: 16px;
         }
-
         .btn-test:active {
             background-color: var(--test-btn-hover);
         }
@@ -184,87 +179,86 @@
         }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
-        <header>
-            <h1>🐾 Sitter Dashboard</h1>
-            <p class="subtitle">Cat & Rabbit Sitter</p>
-        </header>
+<div class="container">
+    <header>
+        <h1>🐾 Sitter Dashboard</h1>
+        <p class="subtitle">Cat & Rabbit Sitter</p>
+    </header>
 
-        <div class="settings-card">
-            <label for="notificationTime">⏰ Orario Notifiche:</label>
-            <input type="time" id="notificationTime" value="19:00" onchange="updateNotificationTime()">
-        </div>
-
-        <button class="btn-perm" id="permBtn" onclick="requestPermissions()">🔔 Abilita Notifiche e GPS</button>
-        <button class="btn-test" onclick="runTest()">🧪 Esegui Test Subito</button>
-
-        <div class="gps-status" id="gpsStatus">
-            📍 Destinazione: Via G. Ellero, 2, Pavia di Udine (In attesa GPS...)
-        </div>
-
-        <div id="tasksContainer"></div>
+    <div class="settings-card">
+        <label for="notificationTime">⏰ Orario Notifiche:</label>
+        <input type="time" id="notificationTime" value="19:00" onchange="updateNotificationTime()">
     </div>
 
-    <script>
-        const tasksData = [
-            { id: 't1', dateStr: '2026-09-30', label: '30 Settembre' },
-            { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre' },
-            { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre' },
-            { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre' }
-        ];
+    <button class="btn-perm" id="permBtn" onclick="requestPermissions()">🔔 Abilita Notifiche e GPS</button>
+    <button class="btn-test" onclick="runTest()">🧪 Esegui Test Subito</button>
+    
+    <div class="gps-status" id="gpsStatus">
+        📍 Destinazione: Via G. Ellero, 2, Pavia di Udine (In attesa GPS...)
+    </div>
 
-        // Coordinate precise per Via G. Ellero, 2, Pavia di Udine UD
-        const HOUSE_LATITUDE = 46.012500;
-        const HOUSE_LONGITUDE = 13.279700;
-        const RADIUS_METERS = 100; // Raggio di attivazione in metri
+    <div id="tasksContainer"></div>
+</div>
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('Service Worker registrato');
-            });
-        }
+<script>
+    const tasksData = [
+        { id: 't1', dateStr: '2026-09-30', label: '30 Settembre' },
+        { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre' },
+        { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre' },
+        { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre' }
+    ];
 
-        function getSavedTime() {
-            return localStorage.getItem('sitter_custom_time') || "19:00";
-        }
+    // Coordinate precise per Via G. Ellero, 2, Pavia di Udine UD
+    const HOUSE_LATITUDE = 46.012500; 
+    const HOUSE_LONGITUDE = 13.279700; 
+    const RADIUS_METERS = 100; // Raggio di attivazione in metri
 
-        function updateNotificationTime() {
-            const timeInput = document.getElementById('notificationTime').value;
-            localStorage.setItem('sitter_custom_time', timeInput);
-            render();
-        }
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('Service Worker registrato');
+        });
+    }
 
-        function getSavedState() {
-            const saved = localStorage.getItem('sitter_tasks_dark_v4');
-            if (saved) return JSON.parse(saved);
-            let initialState = {};
-            tasksData.forEach(t => {
-                initialState[t.id] = { done: false, lastNotified: null };
-            });
-            return initialState;
-        }
+    function getSavedTime() {
+        return localStorage.getItem('sitter_custom_time') || "19:00";
+    }
 
-        let state = getSavedState();
+    function updateNotificationTime() {
+        const timeInput = document.getElementById('notificationTime').value;
+        localStorage.setItem('sitter_custom_time', timeInput);
+        render();
+    }
 
-        function saveState() {
-            localStorage.setItem('sitter_tasks_dark_v4', JSON.stringify(state));
-        }
+    function getSavedState() {
+        const saved = localStorage.getItem('sitter_tasks_dark_v5');
+        if (saved) return JSON.parse(saved);
+        let initialState = {};
+        tasksData.forEach(t => {
+            initialState[t.id] = { done: false, lastNotified: null };
+        });
+        return initialState;
+    }
 
-        function render() {
-            const container = document.getElementById('tasksContainer');
-            container.innerHTML = '';
-            const currentTime = getSavedTime();
-            document.getElementById('notificationTime').value = currentTime;
+    let state = getSavedState();
 
-            tasksData.forEach(task => {
-                const taskState = state[task.id];
-                const card = document.createElement('div');
-                card.className = 'card';
+    function saveState() {
+        localStorage.setItem('sitter_tasks_dark_v5', JSON.stringify(state));
+    }
 
-                card.innerHTML = `
+    function render() {
+        const container = document.getElementById('tasksContainer');
+        container.innerHTML = '';
+        const currentTime = getSavedTime();
+        document.getElementById('notificationTime').value = currentTime;
+
+        tasksData.forEach(task => {
+            const taskState = state[task.id];
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            card.innerHTML = `
                 <div class="date-info">📅 ${task.label} - ${currentTime}</div>
                 <div class="task-desc">🐱🐰 Visita gatto e coniglio</div>
                 <div>
@@ -276,128 +270,127 @@
                     ${taskState.done ? 'FATTO' : 'Segna come FATTO'}
                 </button>
             `;
-                container.appendChild(card);
-            });
+            container.appendChild(card);
+        });
 
-            if (Notification.permission === "granted") {
-                document.getElementById('permBtn').style.display = 'none';
-            }
+        if (Notification.permission === "granted") {
+            document.getElementById('permBtn').style.display = 'none';
+        }
+    }
+
+    function requestPermissions() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    alert("Notifiche abilitate con successo!");
+                } else {
+                    alert("Hai negato le notifiche. Abilitale dalle impostazioni del telefono.");
+                }
+            });
+        }
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(successPosition, errorPosition, {
+                enableHighAccuracy: true,
+                maximumAge: 30000,
+                timeout: 27000
+            });
+            alert("Permesso GPS richiesto. Assicurati di consentire la localizzazione.");
+        }
+        render();
+    }
+
+    function runTest() {
+        if (Notification.permission !== "granted") {
+            alert("Prima devi abilitare le notifiche cliccando sul pulsante viola in alto!");
+            return;
         }
 
-        function requestPermissions() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        alert("Notifiche abilitate con successo!");
-                    } else {
-                        alert("Hai negato le notifiche. Abilitale dalle impostazioni del telefono.");
-                    }
-                });
-            }
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(successPosition, errorPosition, {
-                    enableHighAccuracy: true,
-                    maximumAge: 30000,
-                    timeout: 27000
-                });
-                alert("Permesso GPS richiesto. Assicurati di consentire la localizzazione.");
-            }
+        const currentTime = getSavedTime();
+        new Notification("🧪 TEST RIUSCITO!", {
+            body: `Notifiche attive! Orario: ${currentTime}. Clicca 'Fatto' sulla scheda per testare la memoria.`,
+            icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
+        });
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                let userLat = position.coords.latitude;
+                let userLon = position.coords.longitude;
+                let distance = getDistanceFromLatLonInMeters(userLat, userLon, HOUSE_LATITUDE, HOUSE_LONGITUDE);
+                
+                alert(`✅ TEST GPS (Via Ellero, Pavia di Udine):\n\nDistanza attuale dalla casa: ${Math.round(distance)} metri.`);
+            }, error => {
+                alert("⚠️ GPS attivo ma impossibile leggere la posizione: " + error.message);
+            }, { enableHighAccuracy: true });
+        }
+    }
+
+    function confirmAndDone(id) {
+        let task = tasksData.find(t => t.id === id);
+        let isConfirmed = confirm(`Sei sicuro di aver fatto il turno del ${task.label}?`);
+        
+        if (isConfirmed) {
+            state[id].done = true;
+            saveState();
             render();
-        }
 
-        function runTest() {
-            if (Notification.permission !== "granted") {
-                alert("Prima devi abilitare le notifiche cliccando sul pulsante viola in alto!");
-                return;
-            }
-
-            const currentTime = getSavedTime();
-            new Notification("🧪 TEST RIUSCITO!", {
-                body: `Notifiche attive! Orario: ${currentTime}. Clicca 'Fatto' sulla scheda per testare la memoria.`,
-                icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
-            });
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    let userLat = position.coords.latitude;
-                    let userLon = position.coords.longitude;
-                    let distance = getDistanceFromLatLonInMeters(userLat, userLon, HOUSE_LATITUDE, HOUSE_LONGITUDE);
-
-                    alert(`✅ TEST GPS (Via Ellero, Pavia di Udine):\n\nDistanza attuale dalla casa: ${Math.round(distance)} metri.`);
-                }, error => {
-                    alert("⚠️ GPS attivo ma impossibile leggere la posizione: " + error.message);
-                }, { enableHighAccuracy: true });
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'UPDATE_STATE',
+                    state: state
+                });
             }
         }
+    }
 
-        function confirmAndDone(id) {
-            let task = tasksData.find(t => t.id === id);
-            let isConfirmed = confirm(`Sei sicuro di aver fatto il turno del ${task.label}?`);
+    function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+        let R = 6371000;
+        let dLat = deg2rad(lat2 - lat1);
+        let dLon = deg2rad(lon2 - lon1);
+        let a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
 
-            if (isConfirmed) {
-                state[id].done = true;
-                saveState();
-                render();
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180);
+    }
 
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'UPDATE_STATE',
-                        state: state
+    function successPosition(position) {
+        let userLat = position.coords.latitude;
+        let userLon = position.coords.longitude;
+        let distance = getDistanceFromLatLonInMeters(userLat, userLon, HOUSE_LATITUDE, HOUSE_LONGITUDE);
+        
+        document.getElementById('gpsStatus').innerText = `📍 Via Ellero (Distanza: ${Math.round(distance)}m)`;
+
+        if (distance <= RADIUS_METERS) {
+            let now = new Date().getTime();
+            if (now - lastGpsAlertTime > 2 * 60 * 60 * 1000) {
+                if (Notification.permission === "granted") {
+                    new Notification("🏠 Sei arrivato in Via G. Ellero!", {
+                        body: "Sei arrivato alla casa del sitter. Hai già fatto o devi farlo?",
+                        icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
                     });
                 }
+                lastGpsAlertTime = now;
             }
         }
+    }
 
-        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
-            let R = 6371000;
-            let dLat = deg2rad(lat2 - lat1);
-            let dLon = deg2rad(lon2 - lon1);
-            let a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
+    function errorPosition(error) {
+        document.getElementById('gpsStatus').innerText = "📍 Errore GPS: controlla i permessi di localizzazione.";
+    }
 
-        function deg2rad(deg) {
-            return deg * (Math.PI / 180);
-        }
+    let lastGpsAlertTime = 0;
 
-        function successPosition(position) {
-            let userLat = position.coords.latitude;
-            let userLon = position.coords.longitude;
-            let distance = getDistanceFromLatLonInMeters(userLat, userLon, HOUSE_LATITUDE, HOUSE_LONGITUDE);
+    if (navigator.geolocation && Notification.permission === "granted") {
+        navigator.geolocation.watchPosition(successPosition, errorPosition, { enableHighAccuracy: true });
+    }
 
-            document.getElementById('gpsStatus').innerText = `📍 Via Ellero (Distanza: ${Math.round(distance)}m)`;
-
-            if (distance <= RADIUS_METERS) {
-                let now = new Date().getTime();
-                if (now - lastGpsAlertTime > 2 * 60 * 60 * 1000) {
-                    if (Notification.permission === "granted") {
-                        new Notification("🏠 Sei arrivato in Via G. Ellero!", {
-                            body: "Sei arrivato alla casa del sitter. Hai già fatto o devi farlo?",
-                            icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
-                        });
-                    }
-                    lastGpsAlertTime = now;
-                }
-            }
-        }
-
-        function errorPosition(error) {
-            document.getElementById('gpsStatus').innerText = "📍 Errore GPS: controlla i permessi di localizzazione.";
-        }
-
-        let lastGpsAlertTime = 0;
-
-        if (navigator.geolocation && Notification.permission === "granted") {
-            navigator.geolocation.watchPosition(successPosition, errorPosition, { enableHighAccuracy: true });
-        }
-
-        render();
-    </script>
+    render();
+</script>
 
 </body>
-
-</html>
+</html>˙
