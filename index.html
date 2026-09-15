@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cat & Rabbit Sitter</title>
-    <!-- Favicon integrata con emoji senza bisogno di file esterni -->
+    <!-- Favicon integrata con emoji -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
     <style>
         :root {
@@ -18,6 +18,8 @@
             --success-dark: #039647;
             --test-btn: #3498db;
             --test-btn-hover: #2980b9;
+            --cal-btn: #27ae60;
+            --cal-btn-hover: #219653;
             --border: #29292e;
         }
 
@@ -147,6 +149,16 @@
             cursor: not-allowed;
         }
 
+        .btn-cal {
+            background-color: var(--cal-btn);
+            color: white;
+            font-size: 0.85rem;
+            padding: 10px;
+        }
+        .btn-cal:active {
+            background-color: var(--cal-btn-hover);
+        }
+
         .btn-perm {
             background-color: var(--primary);
             color: white;
@@ -188,12 +200,12 @@
     </header>
 
     <div class="settings-card">
-        <label for="testTime">⏰ Orario per Test:</label>
+        <label for="testTime">⏰ Orario Promemoria:</label>
         <input type="time" id="testTime" value="19:00" onchange="updateTestTime()">
     </div>
 
     <button class="btn-perm" id="permBtn" onclick="requestPermissions()">🔔 Abilita Notifiche e GPS</button>
-    <button class="btn-test" onclick="runTest()">🧪 Esegui Test Notifica</button>
+    <button class="btn-test" onclick="runTest()">🧪 Test Immediato Notifiche</button>
     
     <div class="gps-status" id="gpsStatus">
         📍 Destinazione: Via G. Ellero, 2, Pavia di Udine (In attesa GPS...)
@@ -203,22 +215,21 @@
 </div>
 
 <script>
-    // I 4 giorni fissi delle visite (con orario fissato alle 19:00)
     const tasksData = [
-        { id: 't1', dateStr: '2026-09-30', label: '30 Settembre', time: '19:00' },
-        { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre', time: '19:00' },
-        { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre', time: '19:00' },
-        { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre', time: '19:00' }
+        { id: 't1', dateStr: '2026-09-30', label: '30 Settembre' },
+        { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre' },
+        { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre' },
+        { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre' }
     ];
 
-    // Coordinate precise per Via G. Ellero, 2, Pavia di Udine UD
     const HOUSE_LATITUDE = 46.012500; 
     const HOUSE_LONGITUDE = 13.279700; 
-    const RADIUS_METERS = 100; // Raggio di attivazione in metri
+    const RADIUS_METERS = 100; 
 
+    let swRegistration = null;
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
-            console.log('Service Worker registrato');
+            swRegistration = reg;
         });
     }
 
@@ -229,10 +240,11 @@
     function updateTestTime() {
         const timeInput = document.getElementById('testTime').value;
         localStorage.setItem('sitter_test_time', timeInput);
+        render(); // Ricarica le card per aggiornare i link al calendario con il nuovo orario
     }
 
     function getSavedState() {
-        const saved = localStorage.getItem('sitter_tasks_dark_v7');
+        const saved = localStorage.getItem('sitter_tasks_dark_v9');
         if (saved) return JSON.parse(saved);
         let initialState = {};
         tasksData.forEach(t => {
@@ -244,28 +256,44 @@
     let state = getSavedState();
 
     function saveState() {
-        localStorage.setItem('sitter_tasks_dark_v7', JSON.stringify(state));
+        localStorage.setItem('sitter_tasks_dark_v9', JSON.stringify(state));
     }
 
     function render() {
         const container = document.getElementById('tasksContainer');
         container.innerHTML = '';
         
-        document.getElementById('testTime').value = getSavedTestTime();
+        const currentTime = getSavedTestTime();
+        document.getElementById('testTime').value = currentTime;
 
         tasksData.forEach(task => {
             const taskState = state[task.id];
             const card = document.createElement('div');
             card.className = 'card';
 
+            // Genera il link sicuro per Google Calendar con data, ora scelta e indirizzo
+            const [year, month, day] = task.dateStr.split('-');
+            const [hour, minute] = currentTime.split(':');
+            
+            // Formato data ISO per Google Calendar (YYYYMMDDTHHmm00)
+            const startDate = `${year}${month}${day}T${hour}${minute}00`;
+            // Fine evento un'ora dopo
+            let endHour = String(parseInt(hour) + 1).padStart(2, '0');
+            const endDate = `${year}${month}${day}T${endHour}${minute}00`;
+
+            const calUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=🐱🐰+Visita+Gatto+e+Coniglio&dates=${startDate}/${endDate}&details=Turno+di+sittering+in+Via+G.+Ellero,+2,+Pavia+di+Udine.&location=Via+G.+Ellero,+2,+33050+Pavia+di+Udine+UD`;
+
             card.innerHTML = `
-                <div class="date-info">📅 ${task.label} - ${task.time}</div>
+                <div class="date-info">📅 ${task.label} - ${currentTime}</div>
                 <div class="task-desc">🐱🐰 Visita gatto e coniglio</div>
                 <div>
                     <span class="status-badge ${taskState.done ? 'done' : 'pending'}">
                         ${taskState.done ? 'Completato ✅' : 'In attesa ⏳'}
                     </span>
                 </div>
+                <a href="${calUrl}" target="_blank" style="text-decoration: none;">
+                    <button class="btn-cal" style="width: 100%;">📅 Aggiungi Promemoria al Calendario</button>
+                </a>
                 <button class="btn-done" id="btn-${task.id}" ${taskState.done ? 'disabled' : ''} onclick="confirmAndDone('${task.id}')">
                     ${taskState.done ? 'FATTO' : 'Segna come FATTO'}
                 </button>
@@ -283,8 +311,6 @@
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
                     alert("Notifiche abilitate con successo!");
-                } else {
-                    alert("Hai negato le notifiche. Abilitale dalle impostazioni del telefono.");
                 }
             });
         }
@@ -294,25 +320,32 @@
                 maximumAge: 30000,
                 timeout: 27000
             });
-            alert("Permesso GPS richiesto per il monitoraggio automatico nei giorni delle visite.");
+            alert("GPS attivato per il rilevamento automatico dell'arrivo in Via Ellero.");
         }
         render();
     }
 
-    // Il test serve solo a verificare la notifica all'orario scelto, senza c’entrare con il GPS
-    function runTest() {
+    async function runTest() {
         if (Notification.permission !== "granted") {
-            alert("Prima devi abilitare le notifiche cliccando sul pulsante viola in alto!");
+            alert("Prima abilita le notifiche cliccando il pulsante viola in alto!");
             return;
         }
 
         const chosenTime = getSavedTestTime();
-        new Notification("🧪 TEST NOTIFICA RIUSCITO!", {
-            body: `Le notifiche funzionano perfettamente per l'orario impostato (${chosenTime})!`,
-            icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
-        });
-        
-        alert(`✅ Test inviato con successo per le ore ${chosenTime}!`);
+        if (swRegistration && swRegistration.showNotification) {
+            await swRegistration.showNotification("🚨 TEST NOTIFICA FORTE!", {
+                body: `Questo è il test sonoro impostato per le ore ${chosenTime}!`,
+                icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+                vibrate: [400, 200, 400, 200, 400],
+                requireInteraction: true
+            });
+        } else {
+            new Notification("🚨 TEST NOTIFICA FORTE!", {
+                body: `Test per le ore ${chosenTime}!`,
+                icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
+            });
+        }
+        alert("✅ Test eseguito con successo!");
     }
 
     function confirmAndDone(id) {
@@ -323,13 +356,6 @@
             state[id].done = true;
             saveState();
             render();
-
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'UPDATE_STATE',
-                    state: state
-                });
-            }
         }
     }
 
@@ -349,7 +375,6 @@
         return deg * (Math.PI / 180);
     }
 
-    // Funzione di controllo GPS che si attiva SOLO nei giorni delle visite programmate
     function successPosition(position) {
         let userLat = position.coords.latitude;
         let userLon = position.coords.longitude;
@@ -357,26 +382,27 @@
         
         document.getElementById('gpsStatus').innerText = `📍 Via Ellero (Distanza attuale: ${Math.round(distance)}m)`;
 
-        // Ottieni data e ora attuali nel formato corretto
         let now = new Date();
-        let currentDateStr = now.toISOString().split('T')[0]; // Es. "2026-09-30"
-        let currentHourMin = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-        // Controlla se oggi è uno dei 4 giorni stabiliti
+        let currentDateStr = now.toISOString().split('T')[0]; 
         let activeTask = tasksData.find(t => t.dateStr === currentDateStr && !state[t.id].done);
 
         if (activeTask) {
-            // Controlla se siamo nell'orario della visita (per esempio a partire dall'orario stabilito ed entro le 3 ore successive)
-            // O semplicemente se la distanza è <= 100m nel giorno giusto
             if (distance <= RADIUS_METERS) {
                 let nowTime = now.getTime();
-                // Invia la notifica se non è già stata inviata di recente (es. nelle ultime 2 ore)
                 if (nowTime - lastGpsAlertTime > 2 * 60 * 60 * 1000) {
                     if (Notification.permission === "granted") {
-                        new Notification(`🏠 Arrivato in Via G. Ellero (${activeTask.label})!`, {
-                            body: "Sei arrivato sul posto per la visita a gatto e coniglio. Ricordati di segnare 'FATTO' sull'app!",
-                            icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
-                        });
+                        const alertOptions = {
+                            body: `Sei arrivato in Via G. Ellero, 2 per la visita del ${activeTask.label}! Clicca per segnare 'FATTO'.`,
+                            icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+                            vibrate: [500, 200, 500, 200, 500],
+                            requireInteraction: true
+                        };
+
+                        if (swRegistration) {
+                            swRegistration.showNotification(`🏠 Arrivato a destinazione!`, alertOptions);
+                        } else {
+                            new Notification(`🏠 Arrivato a destinazione!`, alertOptions);
+                        }
                     }
                     lastGpsAlertTime = nowTime;
                 }
