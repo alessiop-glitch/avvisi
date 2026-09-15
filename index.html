@@ -4,12 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promemoria Cat & Rabbit Sitter</title>
+    <title>Cat & Rabbit Sitter</title>
     <style>
+        :root {
+            --bg-color: #121214;
+            --card-bg: #1e1e24;
+            --text-color: #e1e1e6;
+            --text-muted: #a8a8b3;
+            --primary: #8257e5;
+            --primary-hover: #9466ff;
+            --success: #04d361;
+            --success-dark: #039647;
+            --test-btn: #3498db;
+            --test-btn-hover: #2980b9;
+            --border: #29292e;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             display: flex;
@@ -19,83 +33,154 @@
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
         }
 
-        h1 {
-            font-size: 1.5rem;
+        header {
             text-align: center;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        p.subtitle {
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 0.9rem;
             margin-bottom: 20px;
         }
 
+        h1 {
+            font-size: 1.6rem;
+            color: #fff;
+            margin: 0 0 6px 0;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-card label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        input[type="time"] {
+            background: var(--bg-color);
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
         .card {
-            background: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            margin-bottom: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .date-info {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #2980b9;
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .task-desc {
-            font-size: 0.95rem;
-            color: #555;
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
-        .status {
-            font-size: 0.85rem;
-            font-weight: bold;
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            width: fit-content;
         }
 
-        .status.pending {
-            color: #e67e22;
+        .status-badge.pending {
+            background: rgba(230, 126, 34, 0.15);
+            color: #f39c12;
         }
 
-        .status.done {
-            color: #27ae60;
+        .status-badge.done {
+            background: rgba(4, 211, 97, 0.15);
+            color: var(--success);
         }
 
         button {
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
 
         .btn-done {
-            background-color: #2ecc71;
-            color: white;
+            background-color: var(--success);
+            color: #121214;
+        }
+
+        .btn-done:active {
+            background-color: var(--success-dark);
         }
 
         .btn-done:disabled {
-            background-color: #bdc3c7;
+            background-color: #2a2a32;
+            color: #555561;
             cursor: not-allowed;
         }
 
         .btn-perm {
-            background-color: #3498db;
+            background-color: var(--primary);
             color: white;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+
+        .btn-perm:active {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-test {
+            background-color: var(--test-btn);
+            color: white;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .btn-test:active {
+            background-color: var(--test-btn-hover);
+        }
+
+        .gps-status {
+            background: rgba(130, 87, 229, 0.1);
+            border: 1px dashed var(--primary);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -103,37 +188,58 @@
 <body>
 
     <div class="container">
-        <h1>🐾 Sitter Giornaliero</h1>
-        <p class="subtitle">Cat & Rabbit Sitter - Ore 19:00</p>
+        <header>
+            <h1>🐾 Sitter Dashboard</h1>
+            <p class="subtitle">Cat & Rabbit Sitter</p>
+        </header>
 
-        <button class="btn-perm" id="permBtn" onclick="requestPermission()">Abilita Notifiche Telefono</button>
+        <div class="settings-card">
+            <label for="notificationTime">⏰ Orario Notifiche:</label>
+            <input type="time" id="notificationTime" value="19:00" onchange="updateNotificationTime()">
+        </div>
+
+        <button class="btn-perm" id="permBtn" onclick="requestPermissions()">🔔 Abilita Notifiche e GPS</button>
+        <button class="btn-test" onclick="runTest()">🧪 Esegui Test Subito</button>
+
+        <div class="gps-status" id="gpsStatus">
+            📍 Destinazione: Via G. Ellero, 2, Pavia di Udine (In attesa GPS...)
+        </div>
 
         <div id="tasksContainer"></div>
     </div>
 
     <script>
         const tasksData = [
-            { id: 't1', dateStr: '2026-09-30', label: '30 Settembre 2026 - Ore 19:00' },
-            { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre 2026 - Ore 19:00' },
-            { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre 2026 - Ore 19:00' },
-            { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre 2026 - Ore 19:00' }
+            { id: 't1', dateStr: '2026-09-30', label: '30 Settembre' },
+            { id: 't2', dateStr: '2026-10-01', label: '1 Ottobre' },
+            { id: 't3', dateStr: '2026-10-02', label: '2 Ottobre' },
+            { id: 't4', dateStr: '2026-10-03', label: '3 Ottobre' }
         ];
 
-        // Registrazione del Service Worker per la memoria persistente e background
+        // Coordinate precise per Via G. Ellero, 2, Pavia di Udine UD
+        const HOUSE_LATITUDE = 46.012500;
+        const HOUSE_LONGITUDE = 13.279700;
+        const RADIUS_METERS = 100; // Raggio di attivazione in metri
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('Service Worker registrato con successo');
-            }).catch(err => {
-                console.log('Registrazione Service Worker fallita: ', err);
+                console.log('Service Worker registrato');
             });
         }
 
-        // Funzione per leggere lo stato da localStorage (persistente sul dispositivo)
+        function getSavedTime() {
+            return localStorage.getItem('sitter_custom_time') || "19:00";
+        }
+
+        function updateNotificationTime() {
+            const timeInput = document.getElementById('notificationTime').value;
+            localStorage.setItem('sitter_custom_time', timeInput);
+            render();
+        }
+
         function getSavedState() {
-            const saved = localStorage.getItem('sitter_tasks_v2');
-            if (saved) {
-                return JSON.parse(saved);
-            }
+            const saved = localStorage.getItem('sitter_tasks_dark_v4');
+            if (saved) return JSON.parse(saved);
             let initialState = {};
             tasksData.forEach(t => {
                 initialState[t.id] = { done: false, lastNotified: null };
@@ -144,12 +250,14 @@
         let state = getSavedState();
 
         function saveState() {
-            localStorage.setItem('sitter_tasks_v2', JSON.stringify(state));
+            localStorage.setItem('sitter_tasks_dark_v4', JSON.stringify(state));
         }
 
         function render() {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = '';
+            const currentTime = getSavedTime();
+            document.getElementById('notificationTime').value = currentTime;
 
             tasksData.forEach(task => {
                 const taskState = state[task.id];
@@ -157,12 +265,14 @@
                 card.className = 'card';
 
                 card.innerHTML = `
-                <div class="date-info">${task.label}</div>
-                <div class="task-desc">🐱🐰 Cat & Rabbit Sitter</div>
-                <div class="status ${taskState.done ? 'done' : 'pending'}">
-                    Stato: ${taskState.done ? 'Completato ✅' : 'In attesa ⏳'}
+                <div class="date-info">📅 ${task.label} - ${currentTime}</div>
+                <div class="task-desc">🐱🐰 Visita gatto e coniglio</div>
+                <div>
+                    <span class="status-badge ${taskState.done ? 'done' : 'pending'}">
+                        ${taskState.done ? 'Completato ✅' : 'In attesa ⏳'}
+                    </span>
                 </div>
-                <button class="btn-done" id="btn-${task.id}" ${taskState.done ? 'disabled' : ''} onclick="markAsDone('${task.id}')">
+                <button class="btn-done" id="btn-${task.id}" ${taskState.done ? 'disabled' : ''} onclick="confirmAndDone('${task.id}')">
                     ${taskState.done ? 'FATTO' : 'Segna come FATTO'}
                 </button>
             `;
@@ -174,33 +284,115 @@
             }
         }
 
-        function requestPermission() {
-            if (!("Notification" in window)) {
-                alert("Il tuo browser non supporta le notifiche.");
-                return;
-            }
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    alert("Notifiche abilitate!");
-                    render();
-                } else {
-                    alert("Permesso notifiche negato.");
-                }
-            });
-        }
-
-        function markAsDone(id) {
-            state[id].done = true;
-            saveState();
-            render();
-
-            // Comunica al Service Worker lo stato aggiornato
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'UPDATE_STATE',
-                    state: state
+        function requestPermissions() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        alert("Notifiche abilitate con successo!");
+                    } else {
+                        alert("Hai negato le notifiche. Abilitale dalle impostazioni del telefono.");
+                    }
                 });
             }
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(successPosition, errorPosition, {
+                    enableHighAccuracy: true,
+                    maximumAge: 30000,
+                    timeout: 27000
+                });
+                alert("Permesso GPS richiesto. Assicurati di consentire la localizzazione.");
+            }
+            render();
+        }
+
+        function runTest() {
+            if (Notification.permission !== "granted") {
+                alert("Prima devi abilitare le notifiche cliccando sul pulsante viola in alto!");
+                return;
+            }
+
+            const currentTime = getSavedTime();
+            new Notification("🧪 TEST RIUSCITO!", {
+                body: `Notifiche attive! Orario: ${currentTime}. Clicca 'Fatto' sulla scheda per testare la memoria.`,
+                icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
+            });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    let userLat = position.coords.latitude;
+                    let userLon = position.coords.longitude;
+                    let distance = getDistanceFromLatLonInMeters(userLat, userLon, HOUSE_LATITUDE, HOUSE_LONGITUDE);
+
+                    alert(`✅ TEST GPS (Via Ellero, Pavia di Udine):\n\nDistanza attuale dalla casa: ${Math.round(distance)} metri.`);
+                }, error => {
+                    alert("⚠️ GPS attivo ma impossibile leggere la posizione: " + error.message);
+                }, { enableHighAccuracy: true });
+            }
+        }
+
+        function confirmAndDone(id) {
+            let task = tasksData.find(t => t.id === id);
+            let isConfirmed = confirm(`Sei sicuro di aver fatto il turno del ${task.label}?`);
+
+            if (isConfirmed) {
+                state[id].done = true;
+                saveState();
+                render();
+
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'UPDATE_STATE',
+                        state: state
+                    });
+                }
+            }
+        }
+
+        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+            let R = 6371000;
+            let dLat = deg2rad(lat2 - lat1);
+            let dLon = deg2rad(lon2 - lon1);
+            let a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180);
+        }
+
+        function successPosition(position) {
+            let userLat = position.coords.latitude;
+            let userLon = position.coords.longitude;
+            let distance = getDistanceFromLatLonInMeters(userLat, userLon, HOUSE_LATITUDE, HOUSE_LONGITUDE);
+
+            document.getElementById('gpsStatus').innerText = `📍 Via Ellero (Distanza: ${Math.round(distance)}m)`;
+
+            if (distance <= RADIUS_METERS) {
+                let now = new Date().getTime();
+                if (now - lastGpsAlertTime > 2 * 60 * 60 * 1000) {
+                    if (Notification.permission === "granted") {
+                        new Notification("🏠 Sei arrivato in Via G. Ellero!", {
+                            body: "Sei arrivato alla casa del sitter. Hai già fatto o devi farlo?",
+                            icon: "https://cdn-icons-png.flaticon.com/512/616/616408.png"
+                        });
+                    }
+                    lastGpsAlertTime = now;
+                }
+            }
+        }
+
+        function errorPosition(error) {
+            document.getElementById('gpsStatus').innerText = "📍 Errore GPS: controlla i permessi di localizzazione.";
+        }
+
+        let lastGpsAlertTime = 0;
+
+        if (navigator.geolocation && Notification.permission === "granted") {
+            navigator.geolocation.watchPosition(successPosition, errorPosition, { enableHighAccuracy: true });
         }
 
         render();
